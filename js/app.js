@@ -236,8 +236,8 @@
           const color = PALETTE[idx];
           counts.set(idx, (counts.get(idx) || 0) + 1);
           cell.innerHTML = `
-            <svg viewBox="0 0 10 10" class="plus-icon" style="fill:${color.hex}">
-              <path d="M3.4 0H6.6V3.4H10V6.6H6.6V10H3.4V6.6H0V3.4H3.4Z"/>
+            <svg viewBox="0 0 10 6" class="plus-icon" style="fill:${color.hex}">
+              <path d="M2,0 L4,0 L4,2 L6,2 L6,0 L8,0 L8,2 L10,2 L10,4 L8,4 L8,6 L6,6 L6,4 L4,4 L4,6 L2,6 L2,4 L0,4 L0,2 L2,2 Z"/>
             </svg>
             <span class="cell-code">${color.code}</span>`;
         }

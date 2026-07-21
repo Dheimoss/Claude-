@@ -25,7 +25,11 @@ body {
   padding: 1.6rem 2rem 1rem;
   text-align: center;
 }
-.app-header h1 { margin: 0 0 .3rem; font-size: 1.8rem; }
+.app-header h1 {
+  margin: 0 0 .3rem; font-size: 1.8rem;
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+}
+.logo-icon { width: 1.5em; height: .9em; fill: var(--accent); flex-shrink: 0; }
 .tagline { margin: 0; color: var(--muted); font-size: .95rem; }
 
 .app-main {
