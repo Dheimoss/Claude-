@@ -118,7 +118,10 @@
   contrastRange.addEventListener('input', () => contrastValue.textContent = contrastRange.value);
 
   // ---------- Conversion image -> patron ----------
-  function generateGridFromImage(img, cols, rows, brightness, contrast, ignoreTransparent) {
+  // Échantillonne l'image sur une grille fine cols x rows (RGBA bruts, sans
+  // encore choisir de pièces) : sert ensuite de base pour moyenner la
+  // couleur de chaque pièce plus-plus réelle (qui couvre plusieurs cases).
+  function sampleImageColors(img, cols, rows) {
     const canvas = document.createElement('canvas');
     canvas.width = cols;
     canvas.height = rows;
@@ -126,38 +129,50 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, 0, 0, cols, rows);
-    const data = ctx.getImageData(0, 0, cols, rows).data;
-
-    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-    const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
-
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const i = (y * cols + x) * 4;
-        const a = data[i + 3];
-        if (ignoreTransparent && a < 96) continue;
-        let r = data[i], g = data[i + 1], b = data[i + 2];
-        r = clamp(factor * (r - 128) + 128 + brightness);
-        g = clamp(factor * (g - 128) + 128 + brightness);
-        b = clamp(factor * (b - 128) + 128 + brightness);
-        grid[y][x] = nearestPaletteIndex(r, g, b);
-      }
-    }
-    return grid;
+    return ctx.getImageData(0, 0, cols, rows).data;
   }
 
   function clamp(v) { return Math.max(0, Math.min(255, v)); }
 
+  function buildPiecesFromImage(img, cols, rows, brightness, contrast, ignoreTransparent) {
+    const data = sampleImageColors(img, cols, rows);
+    const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+    const includeTest = ignoreTransparent
+      ? (cells) => cells.filter(([x, y]) => data[(y * cols + x) * 4 + 3] >= 96).length >= 5
+      : null;
+
+    const pieces = generatePieces(cols, rows, includeTest);
+
+    for (const piece of pieces) {
+      const opaqueCells = ignoreTransparent
+        ? piece.cells.filter(([x, y]) => data[(y * cols + x) * 4 + 3] >= 96)
+        : piece.cells;
+      const cells = opaqueCells.length ? opaqueCells : piece.cells;
+      let r = 0, g = 0, b = 0;
+      for (const [x, y] of cells) {
+        const i = (y * cols + x) * 4;
+        r += data[i]; g += data[i + 1]; b += data[i + 2];
+      }
+      r /= cells.length; g /= cells.length; b /= cells.length;
+      r = clamp(factor * (r - 128) + 128 + brightness);
+      g = clamp(factor * (g - 128) + 128 + brightness);
+      b = clamp(factor * (b - 128) + 128 + brightness);
+      piece.colorIndex = nearestPaletteIndex(r, g, b);
+    }
+    return pieces;
+  }
+
   generateFromImageBtn.addEventListener('click', () => {
     if (!loadedImage) return;
     const cols = Number(colsRange.value);
-    const rows = lockRatio.checked ? Number(rowsRange.value) : Number(rowsRange.value);
-    const grid = generateGridFromImage(
+    const rows = Number(rowsRange.value);
+    const pieces = buildPiecesFromImage(
       loadedImage, cols, rows,
       Number(brightnessRange.value), Number(contrastRange.value),
       transparentBg.checked
     );
-    renderPattern(grid, 'Mon patron plus-plus', 'Créé à partir d\'une image importée');
+    renderPattern(pieces, cols, rows, 'Mon patron plus-plus', 'Créé à partir d\'une image importée');
   });
 
   // ---------- Galerie de patrons ----------
@@ -204,50 +219,62 @@
 
   presetSizeRange.addEventListener('input', () => presetSizeValue.textContent = presetSizeRange.value);
 
+  function buildPiecesFromPreset(presetId, size, colorIndex) {
+    const preset = PRESETS.find(p => p.id === presetId);
+    const cols = size, rows = size;
+    const cellInside = (x, y) => {
+      const nx = (x + 0.5) / cols * 2 - 1;
+      const ny = (y + 0.5) / rows * 2 - 1;
+      return preset.test(nx, ny);
+    };
+    const includeTest = (cells) => cells.filter(([x, y]) => cellInside(x, y)).length >= 5;
+    const pieces = generatePieces(cols, rows, includeTest);
+    pieces.forEach(p => p.colorIndex = colorIndex);
+    return pieces;
+  }
+
   generatePresetBtn.addEventListener('click', () => {
     if (!selectedPresetId) return;
     const preset = PRESETS.find(p => p.id === selectedPresetId);
     const size = Number(presetSizeRange.value);
     const colorIndex = Number(presetColorSelect.value);
-    const grid = generatePresetGrid(selectedPresetId, size, colorIndex);
-    renderPattern(grid, `Patron « ${preset.label} »`, 'Patron prêt à l\'emploi');
+    const pieces = buildPiecesFromPreset(selectedPresetId, size, colorIndex);
+    renderPattern(pieces, size, size, `Patron « ${preset.label} »`, 'Patron prêt à l\'emploi');
   });
 
   // ---------- Rendu du patron ----------
-  function renderPattern(grid, title, subtitle) {
-    const rows = grid.length;
-    const cols = grid[0].length;
+  // Une pièce plus-plus réelle couvre 5x3 (ou 3x5) cases : le rendu est donc
+  // un unique SVG où chaque pièce est dessinée à sa vraie position issue du
+  // pavage (js/tiling.js), pas une grille de cases indépendantes.
+  const UNIT = 2; // échelle des chemins SVG : 2 unités par case
+  const SHOW_LABEL_MAX_COLS = 42; // au-delà, les lettres deviennent illisibles
 
-    patternGridEl.innerHTML = '';
-    patternGridEl.style.setProperty('--cols', cols);
-    patternGridEl.style.setProperty('--rows', rows);
+  function renderPattern(pieces, cols, rows, title, subtitle) {
+    const showLabels = cols <= SHOW_LABEL_MAX_COLS;
+    const svgW = cols * UNIT, svgH = rows * UNIT;
 
     const counts = new Map();
-    const fragment = document.createDocumentFragment();
+    const pieceMarkup = pieces.map(piece => {
+      const color = PALETTE[piece.colorIndex];
+      counts.set(piece.colorIndex, (counts.get(piece.colorIndex) || 0) + 1);
+      const bbox = PIECE_BBOX[piece.shape];
+      const tx = piece.ox * UNIT, ty = piece.oy * UNIT;
+      const cx = tx + (bbox.w * UNIT) / 2;
+      const cy = ty + (bbox.h * UNIT) / 2;
+      const label = showLabels
+        ? `<text x="${cx}" y="${cy}" class="piece-label">${color.code}</text>`
+        : '';
+      return `<g transform="translate(${tx},${ty})">
+        <path d="${PIECE_PATHS[piece.shape]}" fill="${color.hex}" class="piece-shape"/>
+      </g>${label}`;
+    }).join('');
 
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const idx = grid[y][x];
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        if (idx === null || idx === undefined) {
-          cell.classList.add('empty');
-        } else {
-          const color = PALETTE[idx];
-          counts.set(idx, (counts.get(idx) || 0) + 1);
-          cell.innerHTML = `
-            <svg viewBox="0 0 10 6" class="plus-icon" style="fill:${color.hex}">
-              <path d="M2,0 L4,0 L4,2 L6,2 L6,0 L8,0 L8,2 L10,2 L10,4 L8,4 L8,6 L6,6 L6,4 L4,4 L4,6 L2,6 L2,4 L0,4 L0,2 L2,2 Z"/>
-            </svg>
-            <span class="cell-code">${color.code}</span>`;
-        }
-        fragment.appendChild(cell);
-      }
-    }
-    patternGridEl.appendChild(fragment);
-    patternGridEl.classList.toggle('dense', cols > 40);
+    patternGridEl.innerHTML = `
+      <svg class="pattern-svg" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+        ${pieceMarkup}
+      </svg>`;
 
-    const total = Array.from(counts.values()).reduce((a, b) => a + b, 0);
+    const total = pieces.length;
     const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
     legendEl.innerHTML = sorted.map(([idx, count]) => {
       const c = PALETTE[idx];
@@ -258,9 +285,9 @@
       </div>`;
     }).join('');
 
-    gridInfo.textContent = `Grille : ${cols} × ${rows} = ${total} pièces à placer`;
+    gridInfo.textContent = `Grille : ${cols} × ${rows} cases — ${total} pièces plus-plus à assembler`;
     printTitle.textContent = title;
-    printSubtitle.textContent = `${subtitle} — ${cols} × ${rows} pièces (${total} au total)`;
+    printSubtitle.textContent = `${subtitle} — ${total} pièces plus-plus au total`;
 
     printBtn.disabled = false;
     resetBtn.disabled = false;

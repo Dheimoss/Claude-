@@ -35,8 +35,8 @@
       </div>
 
       <div class="field">
-        <label for="colsRange">Largeur du patron : <output id="colsValue">32</output> pièces</label>
-        <input type="range" id="colsRange" min="8" max="70" value="32">
+        <label for="colsRange">Largeur de la grille : <output id="colsValue">32</output> cases</label>
+        <input type="range" id="colsRange" min="18" max="70" value="32">
       </div>
 
       <label class="checkbox-field">
@@ -45,8 +45,8 @@
       </label>
 
       <div class="field" id="rowsField" hidden>
-        <label for="rowsRange">Hauteur du patron : <output id="rowsValue">32</output> pièces</label>
-        <input type="range" id="rowsRange" min="8" max="70" value="32">
+        <label for="rowsRange">Hauteur de la grille : <output id="rowsValue">32</output> cases</label>
+        <input type="range" id="rowsRange" min="18" max="70" value="32">
       </div>
 
       <details class="advanced">
@@ -78,8 +78,8 @@
       </div>
 
       <div class="field">
-        <label for="presetSizeRange">Taille du patron : <output id="presetSizeValue">28</output> pièces</label>
-        <input type="range" id="presetSizeRange" min="12" max="60" value="28">
+        <label for="presetSizeRange">Taille de la grille : <output id="presetSizeValue">28</output> cases</label>
+        <input type="range" id="presetSizeRange" min="18" max="60" value="28">
       </div>
 
       <button class="btn primary" id="generatePresetBtn" disabled>Générer le patron</button>
@@ -117,6 +117,7 @@
 
 <script src="js/palette.js"></script>
 <script src="js/presets.js"></script>
+<script src="js/tiling.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
