@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlusPlus Pattern Studio — Créateur de patrons</title>
+<meta name="description" content="Convertissez vos photos en patrons de construction pour pièces plus-plus, ou choisissez un patron prêt à l'emploi. Export PDF et impression.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath fill='%23e4312b' d='M3.4 0H6.6V3.4H10V6.6H6.6V10H3.4V6.6H0V3.4H3.4Z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>➕ PlusPlus Pattern Studio</h1>
+  <p class="tagline">Transformez une image en patron de construction, ou piochez un patron tout prêt — puis imprimez ou exportez en PDF.</p>
+</header>
+
+<main class="app-main">
+
+  <aside class="panel controls" aria-label="Réglages">
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="image" role="tab" aria-selected="true">🖼️ Depuis une image</button>
+      <button class="tab-btn" data-tab="presets" role="tab" aria-selected="false">✨ Patrons prêts à l'emploi</button>
+    </div>
+
+    <section class="tab-panel" id="tab-image" role="tabpanel">
+      <div class="dropzone" id="dropzone" tabindex="0">
+        <input type="file" id="imageInput" accept="image/*" hidden>
+        <p id="dropzoneText">Glissez une image ici<br>ou <span class="link">cliquez pour en choisir une</span></p>
+        <img id="imagePreview" alt="Aperçu de l'image importée" hidden>
+      </div>
+
+      <div class="field">
+        <label for="colsRange">Largeur du patron : <output id="colsValue">32</output> pièces</label>
+        <input type="range" id="colsRange" min="8" max="70" value="32">
+      </div>
+
+      <label class="checkbox-field">
+        <input type="checkbox" id="lockRatio" checked>
+        Conserver les proportions de l'image
+      </label>
+
+      <div class="field" id="rowsField" hidden>
+        <label for="rowsRange">Hauteur du patron : <output id="rowsValue">32</output> pièces</label>
+        <input type="range" id="rowsRange" min="8" max="70" value="32">
+      </div>
+
+      <details class="advanced">
+        <summary>Réglages avancés</summary>
+        <div class="field">
+          <label for="brightnessRange">Luminosité : <output id="brightnessValue">0</output></label>
+          <input type="range" id="brightnessRange" min="-80" max="80" value="0">
+        </div>
+        <div class="field">
+          <label for="contrastRange">Contraste : <output id="contrastValue">0</output></label>
+          <input type="range" id="contrastRange" min="-60" max="100" value="0">
+        </div>
+        <label class="checkbox-field">
+          <input type="checkbox" id="transparentBg" checked>
+          Ignorer le fond transparent (images PNG découpées)
+        </label>
+      </details>
+
+      <button class="btn primary" id="generateFromImageBtn" disabled>Générer le patron</button>
+    </section>
+
+    <section class="tab-panel" id="tab-presets" role="tabpanel" hidden>
+      <p class="hint">Choisissez un motif, sa couleur, sa taille, puis générez le patron.</p>
+      <div class="preset-gallery" id="presetGallery"></div>
+
+      <div class="field">
+        <label for="presetColor">Couleur du motif</label>
+        <select id="presetColor"></select>
+      </div>
+
+      <div class="field">
+        <label for="presetSizeRange">Taille du patron : <output id="presetSizeValue">28</output> pièces</label>
+        <input type="range" id="presetSizeRange" min="12" max="60" value="28">
+      </div>
+
+      <button class="btn primary" id="generatePresetBtn" disabled>Générer le patron</button>
+    </section>
+
+    <p class="disclaimer">Plus-Plus® est une marque déposée de son fabricant. Ce site indépendant n'est pas affilié à la marque ; il propose simplement des grilles de construction compatibles.</p>
+  </aside>
+
+  <section class="panel preview" aria-label="Aperçu du patron">
+    <div class="preview-toolbar">
+      <div id="gridInfo" class="grid-info">Aucun patron généré pour l'instant.</div>
+      <div class="toolbar-actions">
+        <button class="btn" id="printBtn" disabled>🖨️ Imprimer / Exporter en PDF</button>
+        <button class="btn ghost" id="resetBtn" disabled>↺ Réinitialiser</button>
+      </div>
+    </div>
+
+    <div id="printArea">
+      <div class="print-header">
+        <h2 id="printTitle">Mon patron plus-plus</h2>
+        <p id="printSubtitle"></p>
+      </div>
+      <div id="patternGrid" class="pattern-grid"></div>
+      <div id="legend" class="legend"></div>
+    </div>
+
+    <p class="empty-state" id="emptyState">Importez une image ou choisissez un patron prêt à l'emploi pour commencer.</p>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <p>Astuce impression : dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » comme imprimante pour exporter votre patron.</p>
+</footer>
+
+<script src="js/palette.js"></script>
+<script src="js/presets.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
