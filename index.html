@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Malette — Ta checklist de vacances, sur-mesure</title>
+<meta name="description" content="Génère en 30 secondes une checklist de valise adaptée à ta destination, la saison et ta famille. Coche, personnalise, partage." />
+<meta name="theme-color" content="#0b0e1a" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧳</text></svg>" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="mesh-bg" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="grain"></div>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-icon">🧳</span>
+    <span class="brand-name">Malette</span>
+  </a>
+  <div class="topbar-actions">
+    <button id="theme-toggle" class="icon-btn" title="Changer de thème" aria-label="Changer de thème">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <p class="eyebrow">✨ Générateur intelligent de checklist</p>
+    <h1>La checklist de valise <span class="text-gradient">parfaite</span>, en 30 secondes.</h1>
+    <p class="hero-sub">Destination, saison, enfants, activités… Malette construit une liste sur-mesure que tu coches, modifies et partages avec toute la famille.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-lg" id="cta-start">Créer ma checklist <span class="arrow">→</span></button>
+      <a class="btn btn-ghost btn-lg" href="#how">Comment ça marche</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><strong>7</strong><span>types de séjour</span></div>
+      <div class="stat"><strong>100%</strong><span>personnalisable</span></div>
+      <div class="stat"><strong>1 lien</strong><span>à partager</span></div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section class="how" id="how">
+    <div class="how-card">
+      <span class="how-num">01</span>
+      <h3>Décris ton voyage</h3>
+      <p>Destination, saison, transport, nombre de voyageurs, enfants, animaux, activités…</p>
+    </div>
+    <div class="how-card">
+      <span class="how-num">02</span>
+      <h3>Reçois ta liste</h3>
+      <p>Une checklist organisée par catégories, déjà adaptée à ta situation.</p>
+    </div>
+    <div class="how-card">
+      <span class="how-num">03</span>
+      <h3>Coche & partage</h3>
+      <p>Ajoute tes objets, coche au fur et à mesure, envoie le lien à toute la famille.</p>
+    </div>
+  </section>
+
+  <!-- CONFIGURATOR -->
+  <section class="configurator" id="configurator">
+    <div class="section-head">
+      <p class="eyebrow">Étape 1</p>
+      <h2>Parle-nous de ton séjour</h2>
+    </div>
+
+    <div class="config-grid">
+
+      <div class="config-card span-full">
+        <h4>Destination</h4>
+        <div class="chip-grid" id="pick-destination" data-key="destination"></div>
+      </div>
+
+      <div class="config-card">
+        <h4>Saison</h4>
+        <div class="chip-grid" id="pick-season" data-key="season"></div>
+      </div>
+
+      <div class="config-card">
+        <h4>Transport</h4>
+        <div class="chip-grid" id="pick-transport" data-key="transport"></div>
+      </div>
+
+      <div class="config-card">
+        <h4>Durée du séjour</h4>
+        <div class="days-control">
+          <input type="range" id="days-range" min="1" max="30" value="7" />
+          <div class="days-value"><span id="days-value">7</span> jours</div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h4>Voyageurs</h4>
+        <div class="stepper-row">
+          <span>Adultes</span>
+          <div class="stepper">
+            <button data-stepper="adults" data-dir="-1" aria-label="Moins d'adultes">−</button>
+            <span id="adults-value">2</span>
+            <button data-stepper="adults" data-dir="1" aria-label="Plus d'adultes">+</button>
+          </div>
+        </div>
+        <div class="stepper-row">
+          <span>Enfants</span>
+          <div class="stepper">
+            <button data-stepper="children" data-dir="-1" aria-label="Moins d'enfants">−</button>
+            <span id="children-value">0</span>
+            <button data-stepper="children" data-dir="1" aria-label="Plus d'enfants">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card span-full">
+        <h4>Options</h4>
+        <div class="toggle-grid">
+          <label class="toggle-pill">
+            <input type="checkbox" id="opt-baby" />
+            <span>🍼 Voyage avec bébé</span>
+          </label>
+          <label class="toggle-pill">
+            <input type="checkbox" id="opt-pet" />
+            <span>🐾 Animal de compagnie</span>
+          </label>
+          <label class="toggle-pill">
+            <input type="checkbox" id="opt-sport" />
+            <span>🏃 Activités sportives</span>
+          </label>
+          <label class="toggle-pill">
+            <input type="checkbox" id="opt-business" />
+            <span>💼 Voyage professionnel</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="generate-bar">
+      <button class="btn btn-primary btn-lg" id="generate-btn">Générer ma checklist ✨</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="result" id="result" hidden>
+    <div class="result-header">
+      <div class="result-title">
+        <p class="eyebrow" id="result-eyebrow">Ta checklist</p>
+        <h2 id="result-heading">Prêt·e à partir ?</h2>
+      </div>
+
+      <div class="progress-widget">
+        <svg class="progress-ring" width="88" height="88" viewBox="0 0 88 88">
+          <circle class="progress-ring-bg" cx="44" cy="44" r="38"></circle>
+          <circle class="progress-ring-fill" id="progress-circle" cx="44" cy="44" r="38"></circle>
+        </svg>
+        <div class="progress-label"><span id="progress-percent">0%</span><small>emballé</small></div>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary" id="share-btn">🔗 Partager le lien</button>
+      <button class="btn btn-ghost" id="edit-config-btn">⚙️ Modifier les critères</button>
+      <button class="btn btn-ghost" id="reset-btn">↺ Nouvelle liste</button>
+    </div>
+
+    <div class="checklist-grid" id="checklist-grid"></div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Fait avec 🧳 pour ne plus jamais oublier son chargeur. Aucune donnée n'est envoyée à un serveur — tout reste dans ton lien et ton navigateur.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
